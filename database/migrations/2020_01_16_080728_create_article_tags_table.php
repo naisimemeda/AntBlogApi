@@ -32,4 +32,36 @@ class CreateArticleTagsTable extends Migration
     }
 }
 
-
+curl -H'Content-Type: application/json' -XPUT http://localhost:9200/articles/_mapping/_doc?pretty -d'{
+	"properties": {
+    "title": {
+        "type": "text",
+			"analyzer": "ik_smart"
+		},
+		"body": {
+        "type": "text",
+			"analyzer": "ik_smart"
+		},
+		"category_id": {
+        "type": "integer"
+		},
+		"reply_count": {
+        "type": "integer"
+		},
+		"view_count": {
+        "type": "integer"
+		},
+		"hot": {
+        "type": "integer"
+		},
+		"tags": {
+        "type": "nested",
+			"properties": {
+            "name": {
+                "type": "keyword",
+					"copy_to": "tags_value"
+				}
+			}
+		}
+	}
+}'
