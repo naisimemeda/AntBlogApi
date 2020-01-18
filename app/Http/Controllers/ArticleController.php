@@ -29,20 +29,7 @@ class ArticleController extends Controller
             ],
         ];
 
-        $params['body']['aggs'] = [
-            'properties' => [
-                'nested' => [
-                    'path' => 'tags',
-                ],
-                'aggs'   => [
-                    'properties' => [
-                        'terms' => [
-                            'field' => 'tags.name',
-                        ],
-                    ],
-                ],
-            ],
-        ];
+
 
         if ($filterString = $request->input('filters')) {
             $params['body']['query']['bool']['filter'][] = [
