@@ -13,4 +13,5 @@ use Illuminate\Http\Request;
 |
 */
 Route::post('login','AuthController@login')->name('users.login');
+Route::post('users','AuthController@store')->name('users.store');
 Route::get('article/list', 'ArticleController@index')->name('article.list');

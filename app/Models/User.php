@@ -50,7 +50,7 @@ class User extends Authenticatable
         if (strlen($value) != 60) {
 
             // 不等于 60，做密码加密处理
-            $value = bcrypt($value);
+            $value = Hash::make($value);
         }
 
         $this->attributes['password'] = $value;
