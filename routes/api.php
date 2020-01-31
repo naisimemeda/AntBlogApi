@@ -12,5 +12,5 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-
+Route::post('login','AuthController@login')->name('users.login');
 Route::get('article/list', 'ArticleController@index')->name('article.list');
