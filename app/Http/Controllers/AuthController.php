@@ -19,8 +19,9 @@ class AuthController extends Controller
      */
     public function store(UserRequest $request, AuthManager $auth)
     {
-        User::query()->create($request->only(['email', 'name', 'password']));
-        return $this->success('成功');
+        $id = User::query()->create($request->only(['email', 'name', 'password']));
+//        $token = app('auth')->guard('api')->setUser(User::find($id));
+//        return $this->success($token);
     }
 
     public function login(AuthorizationRequest $originRequest, AuthorizationServer $server, ServerRequestInterface $serverRequest)
@@ -30,5 +31,17 @@ class AuthController extends Controller
         } catch (OAuthServerException $e) {
             dd($e->getMessage());
         }
+    }
+
+    /**
+     * 退出
+     */
+    public function logout()
+    {
+        if (Auth::guard('api')->check()) {
+            Auth::guard('api')->user()->token()->delete();
+        }
+
+        return $this->success('成功');
     }
 }

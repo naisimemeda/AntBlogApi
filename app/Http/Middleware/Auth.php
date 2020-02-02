@@ -3,18 +3,17 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
-class Auth
+class Auth extends Authenticate
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @return mixed
-     */
-    public function handle($request, Closure $next)
+    protected function authenticate(array $guards)
     {
-        return $next($request);
+
+        if ($this->auth->guard('api')->check()) {
+            return $this->auth->shouldUse('api');
+        }
+
+        throw new UnauthorizedHttpException('未登录', 'Unauthenticated');
     }
 }
