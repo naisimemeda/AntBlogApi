@@ -38,12 +38,6 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-
-    public function article()
-    {
-        return $this->hasMany(Article::class);
-    }
-
     public function setPasswordAttribute($value)
     {
         // 如果值的长度等于 60，即认为是已经做过加密的情况
@@ -59,5 +53,10 @@ class User extends Authenticatable
     public function findForPassport($username)
     {
         return $this->where('email', $username)->first();
+    }
+
+    public function article()
+    {
+        $this->hasMany(Article::class);
     }
 }

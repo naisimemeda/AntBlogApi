@@ -19,9 +19,8 @@ class AuthController extends Controller
      */
     public function store(UserRequest $request, AuthManager $auth)
     {
-        User::query()->create($request->all());
-        $auth->guard('api');
-        return $this->failed('注册失败', 400);
+        User::query()->create($request->only(['email', 'name', 'password']));
+        return $this->success('成功');
     }
 
     public function login(AuthorizationRequest $originRequest, AuthorizationServer $server, ServerRequestInterface $serverRequest)

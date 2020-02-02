@@ -5,6 +5,7 @@ namespace App\Exceptions;
 use App\Common\Toast;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Response;
 use Illuminate\Validation\ValidationException;
 
 class Handler extends ExceptionHandler
@@ -37,15 +38,15 @@ class Handler extends ExceptionHandler
     {
         if ($exception instanceof ValidationException) {
             // 只读取错误中的第一个错误信息
-            $errors  = $exception->errors();
+            $errors = $exception->errors();
             $message = '';
             // 框架返回的是二维数组，因此需要去循环读取第一个数据
             foreach ($errors as $key => $val) {
-                $keys    = array_key_first($val);
+                $keys = array_key_first($val);
                 $message = $val[$keys];
                 break;
             }
-            return 1;
+            return Response::json(['message' => $message], 401);
         }
         return parent::render($request, $exception);
     }

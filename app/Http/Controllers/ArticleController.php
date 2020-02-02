@@ -77,11 +77,6 @@ class ArticleController extends Controller
         $article = Article::query()->whereIn('id', $articleIds)
             ->orderByRaw(sprintf("FIND_IN_SET(id, '%s')", join(',', $articleIds)))->get();
 
-        return response()->json(
-            [
-                $article,
-                $properties
-            ]
-        );
+        return $this->success(compact('article', 'properties'));
     }
 }
