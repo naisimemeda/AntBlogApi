@@ -23,7 +23,7 @@ class UserRequest extends Request
     public function messages()
     {
         return [
-            'email.unique' => '用户名已经存在',
+            'email.unique' => '邮箱已经存在',
             'password.required' => '密码不能为空',
             'password.max' => '密码长度不能超过16个字符',
             'name.max' => '名字不能超过12个字符',

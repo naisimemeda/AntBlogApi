@@ -12,8 +12,15 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::group(['prefix' => '', 'middleware' => ['auth:api']], function () {
-    Route::get('article/list', 'ArticleController@index')->name('article.list');
+Route::group(['prefix' => 'article', 'middleware' => ['auth:api']], function () {
+    Route::get('list', 'ArticleController@index')->name('article.list');
 });
-Route::post('login', 'AuthController@login')->name('users.login');
-Route::post('users', 'AuthController@store')->name('users.store');
+
+Route::group(['prefix' => 'auth'], function () {
+    //获取令牌
+    Route::post('login', 'AuthController@login')->name('users.login');
+    //注册
+    Route::post('register', 'AuthController@store')->name('users.register');
+    //退出
+    Route::delete('logout', 'AuthController@logout')->name('users.logout');
+});
