@@ -34,5 +34,9 @@ class AuthServiceProvider extends ServiceProvider
         Passport::refreshTokensExpireIn(now()->addDays(30));
         //个人令牌
         Passport::personalAccessTokensExpireIn(now()->addDays(15));
+
+        Gate::guessPolicyNamesUsing(function ($class) {
+            return '\\App\\Policies\\'.class_basename($class).'Policy';
+        });
     }
 }

@@ -19,6 +19,7 @@ class CreateArticlesTable extends Migration
             $table->text('body');
             $table->unsignedBigInteger('user_id')->index();
             $table->unsignedBigInteger('category_id')->index();
+            $table->unsignedBigInteger('status')->default(0);
             $table->unsignedBigInteger('reply_count')->default(0)->index();
             $table->unsignedBigInteger('view_count')->default(0)->index();
             $table->unsignedBigInteger('hot')->default(0)->comment('热度')->index();

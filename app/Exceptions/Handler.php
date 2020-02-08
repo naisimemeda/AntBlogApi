@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use App\Common\Toast;
 use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Response;
 use Illuminate\Validation\ValidationException;
@@ -46,7 +47,11 @@ class Handler extends ExceptionHandler
                 $message = $val[$keys];
                 break;
             }
-            return Response::json(['message' => $message], 401);
+            return Response()->json(['message' => $message], 401);
+        }
+
+        if ($exception instanceof AuthorizationException) {
+            return Response()->json(['message' => '没有该权限'], 403);
         }
         return parent::render($request, $exception);
     }

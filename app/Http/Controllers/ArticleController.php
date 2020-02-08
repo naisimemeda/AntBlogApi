@@ -2,81 +2,94 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ArticleRequest;
 use App\Models\Article;
 use App\Models\ArticleCategory;
+use App\SearchBuilders\ArticleSearchBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ArticleController extends Controller
 {
+    /**
+     * 文章列表
+     * @param Request $request
+     * @return mixed
+     */
     public function index(Request $request)
     {
-        $page     = $request->input('page', 1);
-        $pageSize = 16;
+        $page    = $request->input('page', 1);
+        $perPage = 16;
 
-        $params = [
-            'index' => 'articles',
-            'type'  => '_doc',
-            'body'  => [
-                'from'  => ($page - 1) * $pageSize, // 通过当前页数与每页数量计算偏移值
-                'size'  => $pageSize,
-                'query' => [
-                    'bool' => [
-                        'filter' => [
-                            ['term' => ['hot' => 0]],
-                        ],
-                    ],
-                ],
-            ],
-        ];
+        $builder = (new ArticleSearchBuilder())->onSale()->paginate($perPage, $page);
 
-
-
-        if ($filterString = $request->input('filters')) {
-            $params['body']['query']['bool']['filter'][] = [
-                'nested' => [
-                    'path'  => 'tags',
-                    'query' => [
-                        ['term' => ['tags.name' => $filterString]],
-                    ],
-                ],
-            ];
+        if ($request->input('category_id') && $category = ArticleCategory::find($request->input('category_id'))) {
+            // 调用查询构造器的类目筛选
+            $builder->category($category);
         }
 
         if ($search = $request->input('search', '')) {
-            // 将搜索词根据空格拆分成数组，并过滤掉空项
             $keywords = array_filter(explode(' ', $search));
+            // 调用查询构造器的关键词筛选
+            $builder->keywords($keywords);
+        }
 
-            $params['body']['query']['bool']['must'] = [];
-            // 遍历搜索词数组，分别添加到 must 查询中
-            foreach ($keywords as $keyword) {
-                $params['body']['query']['bool']['must'][] = [
-                    'multi_match' => [
-                        'query'  => $keyword,
-                        'fields' => [
-                            'title^3',
-                            'body^2',
-                        ],
-                    ],
-                ];
+        if ($search || isset($category)) {
+            // 调用查询构造器的分面搜索
+            $builder->aggregateProperties();
+        }
+
+        if ($filterString = $request->input('filters')) {
+            $builder->propertyFilter($filterString);
+        }
+
+        if ($order = $request->input('order', '')) {
+            if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
+                if (in_array($m[1], ['id', ])) {
+                    // 调用查询构造器的排序
+                    $builder->orderBy($m[1], $m[2]);
+                }
             }
         }
 
-        if ($request->input('category_id') && $category = ArticleCategory::find($request->input('category_id'))) {
-               $params['body']['query']['bool']['filter'][] = ['term' => ['category_id' => $category->id]];
-        }
 
-        $result = app('es')->search($params);
-        $properties = collect($result['aggregations']['properties']['properties']['buckets'])
-            ->map(function ($bucket) {
-                // 通过 map 方法取出我们需要的字段
-                return [
-                    'key'    => $bucket['key'],
-                ];
-            });
+        $result = app('es')->search($builder->getParams());
+        $properties = [];
+        if (isset($result['aggregations'])) {
+            $properties = collect($result['aggregations']['properties']['properties']['buckets'])
+                ->map(function ($bucket) {
+                    // 通过 map 方法取出我们需要的字段
+                    return [
+                        'key'    => $bucket['key'],
+                    ];
+                });
+        }
         $articleIds = collect($result['hits']['hits'])->pluck('_id')->all();
-        $article = Article::query()->whereIn('id', $articleIds)
+        $article = Article::with(['user'])->whereIn('id', $articleIds)
             ->orderByRaw(sprintf("FIND_IN_SET(id, '%s')", join(',', $articleIds)))->get();
 
         return $this->success(compact('article', 'properties'));
+    }
+
+    public function store(ArticleRequest $request)
+    {
+        $category = ArticleCategory::query()->find($request->get('category_id'));
+
+        $data = array_merge($request->only(['title', 'body']), ['status' => 1, 'user_id' => Auth::id()]);
+
+        $category->article()->create($data);
+
+        return $this->success('成功');
+    }
+
+    public function update(ArticleRequest $request)
+    {
+        $article = Article::query()->find($request->get('article_id'));
+
+        $this->authorize('own', $article);
+
+        $article->update($request->only(['title', 'body', 'status', 'category_id']));
+
+        return $this->success($article);
     }
 }

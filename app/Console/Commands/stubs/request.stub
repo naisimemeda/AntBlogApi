@@ -1,0 +1,20 @@
+<?php
+
+namespace DummyNamespace;
+
+class DummyClass extends ApiBaseRequest
+{
+    public function rules()
+    {
+        return [
+
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+
+        ];
+    }
+}

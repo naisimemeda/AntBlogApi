@@ -48,6 +48,9 @@ class CreateArticleTagsTable extends Migration
 //		"reply_count": {
 //        "type": "integer"
 //		},
+//		"on_sale": {
+//        "type": "boolean"
+//		},
 //		"view_count": {
 //        "type": "integer"
 //		},

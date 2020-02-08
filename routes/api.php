@@ -13,7 +13,13 @@ use Illuminate\Http\Request;
 |
 */
 Route::group(['prefix' => 'article', 'middleware' => ['auth:api']], function () {
+    //文章列表
     Route::get('list', 'ArticleController@index')->name('article.list');
+    //创建文章
+    Route::post('store', 'ArticleController@store')->name('article.store');
+    //修改文章
+    Route::patch('update', 'ArticleController@update')->name('article.update');
+
 });
 
 Route::group(['prefix' => 'auth'], function () {

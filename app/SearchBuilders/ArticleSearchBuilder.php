@@ -20,6 +20,13 @@ class ArticleSearchBuilder
         ]
     ];
 
+    public function onSale()
+    {
+        $this->params['body']['query']['bool']['filter'][] = ['term' => ['on_sale' => true]];
+
+        return $this;
+    }
+
     public function paginate($size, $page)
     {
         $this->params['body']['from'] = ($page - 1) * $size;
@@ -71,7 +78,6 @@ class ArticleSearchBuilder
                 ],
             ];
         }
-
         return $this;
     }
 
@@ -85,6 +91,16 @@ class ArticleSearchBuilder
                 ],
             ],
         ];
+
+        return $this;
+    }
+
+    public function orderBy($field, $direction)
+    {
+        if (!isset($this->params['body']['sort'])) {
+            $this->params['body']['sort'] = [];
+        }
+        $this->params['body']['sort'][] = [$field => $direction];
 
         return $this;
     }

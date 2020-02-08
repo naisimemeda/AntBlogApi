@@ -9,6 +9,10 @@ class Article extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'status' => 'boolean'
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -32,6 +36,8 @@ class Article extends Model
             'hot',
         ]);
 
+        $arr['on_sale'] = $this->status;
+
         $arr['body']  = strip_tags($this->body);
 
         $arr['tags']  = $this->tags->map(function (ArticleTag $tag) {
@@ -39,5 +45,10 @@ class Article extends Model
         });
 
         return $arr;
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(ArticleCategory::class, 'category_id', 'id');
     }
 }
