@@ -18,7 +18,7 @@ Route::group(['prefix' => 'article', 'middleware' => ['auth:api']], function () 
     //创建文章
     Route::post('store', 'ArticleController@store')->name('article.store');
     //修改文章
-    Route::patch('update', 'ArticleController@update')->name('article.update');
+    Route::patch('{article}/update', 'ArticleController@update')->name('article.update');
 
 });
 

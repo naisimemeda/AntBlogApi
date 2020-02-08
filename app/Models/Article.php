@@ -20,6 +20,7 @@ class Article extends Model
         static::creating(function ($model) {
             $model->body = clean($model->body, 'user_article_body');
         });
+
         static::saving(function ($model) {
             $model->body = clean($model->body, 'user_article_body');
         });
