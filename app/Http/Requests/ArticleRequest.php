@@ -9,7 +9,7 @@ class ArticleRequest extends ApiBaseRequest
         switch($this->method()) {
             case 'POST':
                 return [
-                    'title' => 'required|string',
+                    'title' => 'required|string|max:15',
                     'body' => 'required|string',
                     'category_id' => 'required|integer|exists:article_categories,id',
                 ];

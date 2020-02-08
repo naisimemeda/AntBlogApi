@@ -13,6 +13,19 @@ class Article extends Model
         'status' => 'boolean'
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+        // 监听模型创建事件，在写入数据库之前触发
+        static::creating(function ($model) {
+            $model->body = clean($model->body, 'user_article_body');
+        });
+        static::saving(function ($model) {
+            $model->body = clean($model->body, 'user_article_body');
+        });
+    }
+
+
     public function user()
     {
         return $this->belongsTo(User::class);
