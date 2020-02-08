@@ -11,7 +11,7 @@ class ArticleRequest extends ApiBaseRequest
                 return [
                     'title' => 'required|string',
                     'body' => 'required|string',
-                    'category_id' => 'required|integer|exists:categories,id',
+                    'category_id' => 'required|integer|exists:article_categories,id',
                 ];
                 break;
             case 'PATCH':
@@ -20,7 +20,7 @@ class ArticleRequest extends ApiBaseRequest
                     'title' => 'string',
                     'body' => 'string',
                     'status' => 'integer|in:0,1',
-                    'category_id' => 'exists:categories,id',
+                    'category_id' => 'exists:article_categories,id',
                 ];
                 break;
         }

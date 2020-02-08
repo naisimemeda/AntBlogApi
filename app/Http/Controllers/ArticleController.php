@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ArticleRequest;
+use App\Jobs\SyncOneArticleToES;
 use App\Models\Article;
 use App\Models\ArticleCategory;
 use App\SearchBuilders\ArticleSearchBuilder;
@@ -77,7 +78,9 @@ class ArticleController extends Controller
 
         $data = array_merge($request->only(['title', 'body']), ['status' => 1, 'user_id' => Auth::id()]);
 
-        $category->article()->create($data);
+        $article = $category->article()->create($data);
+
+        $this->dispatch(new SyncOneArticleToES($article));
 
         return $this->success('成功');
     }
@@ -89,6 +92,8 @@ class ArticleController extends Controller
         $this->authorize('own', $article);
 
         $article->update($request->only(['title', 'body', 'status', 'category_id']));
+
+        $this->dispatch(new SyncOneArticleToES($article));
 
         return $this->success($article);
     }
