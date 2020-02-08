@@ -6,6 +6,7 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use Illuminate\Support\Facades\Gate;
 use Laravel\Passport\Passport;
 
+
 class AuthServiceProvider extends ServiceProvider
 {
     /**
@@ -31,5 +32,7 @@ class AuthServiceProvider extends ServiceProvider
         Passport::tokensExpireIn(now()->addDays(15));
         // refreshTokens 过期时间
         Passport::refreshTokensExpireIn(now()->addDays(30));
+        //个人令牌
+        Passport::personalAccessTokensExpireIn(now()->addDays(15));
     }
 }

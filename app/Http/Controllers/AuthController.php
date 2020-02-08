@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
 use App\Models\User;
+use App\Traits\PassportToken;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,34 +16,36 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class AuthController extends Controller
 {
+    use PassportToken;
     /*
      * 注册用户
      */
     public function store(UserRequest $request, AuthManager $auth)
     {
         $user = User::query()->create($request->only(['email', 'name', 'password']));
-        $token = $user->createToken('api')->accessToken;
-        return $this->success('Bearer ' . $token);
+        $result = $this->getBearerTokenByUser($user, '1', false);
+        return $this->success($result);
     }
 
     /**
      * 获取令牌
      * @param Request $request
-     * @return mixed
+     * @param AuthorizationRequest $originRequest
+     * @param AuthorizationServer $server
+     * @param ServerRequestInterface $serverRequest
+     * @return mixed|\Psr\Http\Message\ResponseInterface
      */
-    public function login(Request $request)
+    public function login(Request $request,
+                          AuthorizationRequest $originRequest,
+                          AuthorizationServer $server,
+                          ServerRequestInterface $serverRequest)
     {
-        $credentials = [
-            'email' => $request->get('username'),
-            'password' => $request->get('password')
-        ];
-
-        if (Auth::guard()->attempt($credentials)) {
-            $token = Auth::guard()->user()->createToken('api')->accessToken;
-            return $this->success('Bearer ' . $token);
-        } else {
-            return $this->failed('UnAuthorised');
+        try {
+            return $server->respondToAccessTokenRequest($serverRequest, new Psr7Response)->withStatus(201);
+        } catch(OAuthServerException $e) {
+            return $this->failed($e->getMessage());
         }
+
     }
 
     /**
@@ -53,7 +56,6 @@ class AuthController extends Controller
         if (Auth::guard('api')->check()) {
             Auth::guard('api')->user()->token()->delete();
         }
-
         return $this->success('成功');
     }
 }
