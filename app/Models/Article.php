@@ -65,4 +65,9 @@ class Article extends Model
     {
         return $this->belongsTo(ArticleCategory::class, 'category_id', 'id');
     }
+
+    public function like()
+    {
+        return $this->morphMany(Like::class, 'like');
+    }
 }

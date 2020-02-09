@@ -62,4 +62,11 @@ class User extends Authenticatable
     {
         $this->hasMany(Article::class);
     }
+
+    public function favoriteArticles()
+    {
+        return $this->belongsToMany(Article::class, 'user_favorite_article')
+            ->withTimestamps()
+            ->orderBy('user_favorite_article.created_at', 'desc');
+    }
 }

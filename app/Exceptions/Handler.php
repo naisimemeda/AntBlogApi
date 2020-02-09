@@ -5,9 +5,11 @@ namespace App\Exceptions;
 use App\Common\Toast;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Response;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -53,6 +55,12 @@ class Handler extends ExceptionHandler
         if ($exception instanceof AuthorizationException) {
             return Response()->json(['message' => '没有该权限'], 403);
         }
+
+        if ($exception instanceof ModelNotFoundException) {
+            return Response()->json(['message' => '不要搞事情哦'], 403);
+        }
+
+
         return parent::render($request, $exception);
     }
 }

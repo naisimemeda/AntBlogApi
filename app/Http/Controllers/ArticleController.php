@@ -7,9 +7,11 @@ use App\Jobs\SyncOneArticleToES;
 use App\Models\Article;
 use App\Models\ArticleCategory;
 use App\Models\ArticleTag;
+use App\Models\Comment;
 use App\SearchBuilders\ArticleSearchBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ArticleController extends Controller
 {
@@ -20,7 +22,7 @@ class ArticleController extends Controller
      */
     public function index(Request $request)
     {
-        $page = $request->input('page', 1);
+        $page    = $request->input('page', 1);
         $perPage = 16;
 
         $builder = (new ArticleSearchBuilder())->onSale()->paginate($perPage, $page);
@@ -54,9 +56,10 @@ class ArticleController extends Controller
             }
         }
 
-
         $result = app('es')->search($builder->getParams());
+
         $properties = [];
+
         if (isset($result['aggregations'])) {
             $properties = collect($result['aggregations']['properties']['properties']['buckets'])
                 ->map(function ($bucket) {
@@ -66,6 +69,7 @@ class ArticleController extends Controller
                     ];
                 });
         }
+
         $articleIds = collect($result['hits']['hits'])->pluck('_id')->all();
         $article = Article::with(['user'])->whereIn('id', $articleIds)
             ->orderByRaw(sprintf("FIND_IN_SET(id, '%s')", join(',', $articleIds)))->get();
@@ -103,19 +107,109 @@ class ArticleController extends Controller
 
         $article->update($request->only(['title', 'body', 'status', 'category_id']));
 
-        $tags = $request->get('tags');
-
-
-        collect($tags)->map(function ($value) use ($article) {
-            ArticleTag::query()->create([
-                    'name' => $value,
-                    'article_id' => $article->id
-                ]
-            );
-        });
-
         $this->dispatch(new SyncOneArticleToES($article));
 
         return $this->success($article);
+    }
+
+    /**
+     * 文章详情
+     * @param Article $article
+     * @param Request $request
+     * @return mixed
+     */
+    public function show(Article $article, Request $request)
+    {
+        $article->load(['user:id']);
+        $user_id = 0;
+        if (isset(auth('api')->user()->id)) {
+            $user_id = auth('api')->user()->id;
+        }
+        $like = $article->like()->where('user_id', $user_id)->exists();
+
+        $comment = Comment::with(['user', 'children' => function($query) {
+            $query->with('user')->select('id', 'user_id', 'content', 'image', 'parent_id', 'updated_at');
+        }])->where('article_id', $article->id)->whereNull('parent_id')
+            ->select('id', 'user_id', 'content', 'image', 'updated_at')->get();
+
+        return $this->success(compact('article', 'like', 'comment'));
+    }
+
+
+    /**
+     * 收藏文章
+     * @param Article $article
+     * @param Request $request
+     * @return mixed
+     */
+    public function favor(Article $article, Request $request)
+    {
+        $user = Auth::user();
+        if ($user->favoriteArticles()->find($article->id)) {
+            return $this->success('重复收藏');
+        }
+
+        $user->favoriteArticles()->attach($article);
+        return $this->success('成功');
+    }
+
+    /**
+     * 取消收藏
+     * @param Article $article
+     * @param Request $request
+     * @return mixed
+     */
+    public function disfavor(Article $article, Request $request)
+    {
+        $user = Auth::user();
+        $user->favoriteArticles()->detach($article);
+        return $this->success('成功');
+    }
+
+    /**
+     * 收藏列表
+     * @param Request $request
+     * @return mixed
+     */
+    public function favorites(Request $request)
+    {
+        $user_id = Auth::id();
+
+        $article_id = DB::table('user_favorite_article')->where('user_id', $user_id)->pluck('article_id');
+
+        $article = Article::with(['user:id'])->whereIn('id', $article_id)->select('id', 'user_id')->paginate(16);
+
+        return $this->success(compact('article'));
+    }
+
+    /**
+     * 文章点赞
+     * @param Article $article
+     * @param Request $request
+     * @return mixed
+     */
+    public function articleLike(Article $article, Request $request)
+    {
+        $user = Auth::user();
+        if ($article->like()->where('user_id', 12)->exists()) {
+            return $this->success('重复收藏');
+        }
+        $article->like()->create(['user_id' => $user->id]);
+
+        return $this->success('成功');
+
+    }
+
+    /**
+     * 取消点赞
+     * @param Article $article
+     * @param Request $request
+     * @return mixed
+     */
+    public function dislike(Article $article, Request $request)
+    {
+        $article->like()->where('user_id', Auth::id())->delete();
+
+        return $this->success('成功');
     }
 }
