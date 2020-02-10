@@ -18,6 +18,10 @@ Route::group(['prefix' => 'article', 'middleware' => ['auth:api']], function () 
         //评论
         Route::post('store', 'CommentController@store')->name('comment.store');
     });
+
+
+
+
     //创建文章
     Route::post('store', 'ArticleController@store')->name('article.store');
     //修改文章
@@ -34,6 +38,11 @@ Route::group(['prefix' => 'article', 'middleware' => ['auth:api']], function () 
     Route::delete('{article}/dislike', 'ArticleController@dislike')->name('article.dislike');
 });
 
+
+Route::group(['prefix' => 'storage', 'middleware' => ['auth:api']], function () {
+    //评论
+    Route::post('upload', 'UploadController@upload')->name('storage.upload');
+});
 
 Route::group(['prefix' => 'article'], function () {
     //文章列表
