@@ -120,7 +120,7 @@ class ArticleController extends Controller
      */
     public function show(Article $article, Request $request)
     {
-        $article->load(['user:id']);
+        $article->load(['user']);
         $user_id = 0;
         if (isset(auth('api')->user()->id)) {
             $user_id = auth('api')->user()->id;
@@ -128,10 +128,10 @@ class ArticleController extends Controller
         $like = $article->like()->where('user_id', $user_id)->exists();
 
         $comment = Comment::with(['user', 'children' => function($query) {
-            $query->with('user')->select('id', 'user_id', 'content', 'image', 'parent_id', 'updated_at');
-        }])->where('article_id', $article->id)->whereNull('parent_id')
-            ->select('id', 'user_id', 'content', 'image', 'updated_at')->get();
-
+            $query->with(['user', 'like'])->select('id', 'user_id', 'content', 'image', 'parent_id', 'updated_at');
+        }, 'like'])->where('article_id', $article->id)->whereNull('parent_id')
+            ->select('id', 'user_id', 'content', 'image', 'updated_at')->paginate(16);
+        $article->increment('view_count');
         return $this->success(compact('article', 'like', 'comment'));
     }
 
@@ -145,6 +145,7 @@ class ArticleController extends Controller
     public function favor(Article $article, Request $request)
     {
         $user = Auth::user();
+
         if ($user->favoriteArticles()->find($article->id)) {
             return $this->success('重复收藏');
         }
@@ -194,8 +195,8 @@ class ArticleController extends Controller
         if ($article->like()->where('user_id', 12)->exists()) {
             return $this->success('重复收藏');
         }
-        $article->like()->create(['user_id' => $user->id]);
 
+        $article->like()->create(['user_id' => $user->id]);
         return $this->success('成功');
 
     }

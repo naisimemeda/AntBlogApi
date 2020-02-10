@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Comment extends Model
 {
@@ -60,5 +61,14 @@ class Comment extends Model
     public function getDiffAttribute()
     {
         return $this->updated_at->diffForHumans();
+    }
+
+    public function like()
+    {
+        $user_id = 0;
+        if (isset(auth('api')->user()->id)) {
+            $user_id = auth('api')->user()->id;
+        }
+        return $this->hasOne(Like::class, 'like_id', 'id')->where('user_id', $user_id);
     }
 }

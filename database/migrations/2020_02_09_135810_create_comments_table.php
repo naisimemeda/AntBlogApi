@@ -22,6 +22,7 @@ class CreateCommentsTable extends Migration
             $table->boolean('is_directory');
             $table->text('content');
             $table->text('image')->nullable();
+            $table->unsignedBigInteger('like_count')->default(0);
             $table->timestamps();
         });
     }
