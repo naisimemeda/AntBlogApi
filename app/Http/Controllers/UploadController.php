@@ -11,8 +11,6 @@ class UploadController extends Controller
     {
         $file = $request->file('image');
         $file = $uploader->save($file, 'avatars');
-        return $this->success([
-            'path' => $file['path']
-        ]);
+        return response()->json(['link' => $file['path']]);
     }
 }
