@@ -8,11 +8,6 @@ use App\Traits\PassportToken;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Zend\Diactoros\Response as Psr7Response;
-use League\OAuth2\Server\AuthorizationServer;
-use League\OAuth2\Server\Exception\OAuthServerException;
-use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
-use Psr\Http\Message\ServerRequestInterface;
 
 class AuthController extends Controller
 {
@@ -22,7 +17,7 @@ class AuthController extends Controller
      */
     public function store(UserRequest $request, AuthManager $auth)
     {
-        $user = User::query()->create($request->only(['email', 'name', 'password']));
+        $user   = User::query()->create($request->only(['email', 'name', 'password']));
         $result = $this->getBearerTokenByUser($user, '1', false);
         return $this->success($result);
     }
@@ -30,22 +25,22 @@ class AuthController extends Controller
     /**
      * 获取令牌
      * @param Request $request
-     * @param AuthorizationRequest $originRequest
-     * @param AuthorizationServer $server
-     * @param ServerRequestInterface $serverRequest
-     * @return mixed|\Psr\Http\Message\ResponseInterface
+     * @return mixed
      */
-    public function login(Request $request,
-                          AuthorizationRequest $originRequest,
-                          AuthorizationServer $server,
-                          ServerRequestInterface $serverRequest)
+    public function login(Request $request)
     {
-        try {
-            return $server->respondToAccessTokenRequest($serverRequest, new Psr7Response)->withStatus(201);
-        } catch(OAuthServerException $e) {
-            return $this->failed($e->getMessage());
-        }
+        Auth::guard()->attempt([
+            'email' => $request->input('username'),
+            'password' => $request->input('password')
+        ]);
 
+        $user = Auth::user();
+        if (!$user) {
+            return $this->failed('账号 或 密码错误');
+        }
+        $token = $this->getBearerTokenByUser($user, 1, false);
+
+        return $this->success(compact('token', 'user'));
     }
 
     /**

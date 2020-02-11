@@ -16,6 +16,7 @@
         "laravel/horizon": "^3.6",
         "laravel/passport": "^8.3",
         "laravel/tinker": "^2.0",
+        "medz/cors": "^1.4",
         "mews/purifier": "~3.0",
         "overtrue/laravel-filesystem-qiniu": "^1.0",
         "overtrue/laravel-lang": "~3.0",

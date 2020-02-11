@@ -92,7 +92,7 @@ trait PassportToken
         return $response->generateHttpResponse(new Response);
     }
 
-    protected function getBearerTokenByUser(User $user, $clientId, $output = true)
+    protected function getBearerTokenByUser($user, $clientId, $output = true)
     {
         $passportToken = $this->createPassportTokenByUser($user, $clientId);
         $bearerToken = $this->sendBearerTokenResponse($passportToken['access_token'], $passportToken['refresh_token']);

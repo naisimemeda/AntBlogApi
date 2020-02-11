@@ -13,6 +13,10 @@ class Article extends Model
         'status' => 'boolean'
     ];
 
+    protected $dates = [
+        'created_at', 'updated_at'
+    ];
+
     protected static function boot()
     {
         parent::boot();
@@ -69,5 +73,10 @@ class Article extends Model
     public function like()
     {
         return $this->morphMany(Like::class, 'like');
+    }
+
+    public function getDiffAttribute()
+    {
+        return $this->created_at->diffForHumans();
     }
 }

@@ -72,7 +72,8 @@ class ArticleController extends Controller
 
         $articleIds = collect($result['hits']['hits'])->pluck('_id')->all();
         $article = Article::with(['user'])->whereIn('id', $articleIds)
-            ->orderByRaw(sprintf("FIND_IN_SET(id, '%s')", join(',', $articleIds)))->get();
+            ->select('id', 'title', 'body', 'user_id', 'reply_count', 'view_count', 'hot', 'created_at', DB::raw('1 as diff'))
+            ->orderByRaw(sprintf("FIND_IN_SET(id, '%s')", join(',', $articleIds)))->paginate(16);
 
         return $this->success(compact('article', 'properties'));
     }
